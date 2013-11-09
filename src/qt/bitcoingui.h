@@ -105,7 +105,11 @@ private:
     QAction *miningTwoAction;
     QAction *miningThreeAction;
     QAction *miningFourAction;
-    
+    QAction *miningFiveAction;
+    QAction *miningSixAction;
+    QAction *miningSevenAction;
+    QAction *miningEightAction;
+
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
 
@@ -206,7 +210,10 @@ private slots:
     void miningTwo();
     void miningThree();
     void miningFour();
-
+    void miningFive();
+    void miningSix();
+    void miningSeven();
+    void miningEight();
 };
 
 #endif // BITCOINGUI_H

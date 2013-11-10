@@ -84,6 +84,7 @@ void ClientModel::updateTimer()
         // ensure we return the maximum of newNumBlocksOfPeers and newNumBlocks to not create weird displays in the GUI
         emit numBlocksChanged(newNumBlocks, std::max(newNumBlocksOfPeers, newNumBlocks));
     }
+    emit miningChanged(dHashesPerSec, nThreads);
 }
 
 void ClientModel::updateNumConnections(int numConnections)

@@ -73,6 +73,7 @@ private:
 signals:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count, int countOfPeers);
+    void miningChanged(double count,int threads);
     void alertsChanged(const QString &warnings);
 
     //! Asynchronous message notification

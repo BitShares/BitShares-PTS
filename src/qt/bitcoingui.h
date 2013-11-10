@@ -81,6 +81,7 @@ private:
 
     QLabel *labelEncryptionIcon;
     QLabel *labelConnectionsIcon;
+    QLabel *labelMiningIcon;
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
@@ -137,7 +138,10 @@ private:
     /** Restore window size and position */
     void restoreWindowGeometry();
 
+
 public slots:
+    /** set mining status */
+    void setMining(double hashrate, int threads);
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
     /** Set number of blocks shown in the UI */

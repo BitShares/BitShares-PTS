@@ -111,16 +111,19 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     // Status bar notification icons
     QFrame *frameBlocks = new QFrame();
     frameBlocks->setContentsMargins(0,0,0,0);
-    frameBlocks->setMinimumWidth(56);
-    frameBlocks->setMaximumWidth(56);
+    frameBlocks->setMinimumWidth(83);
+    frameBlocks->setMaximumWidth(83);
     QHBoxLayout *frameBlocksLayout = new QHBoxLayout(frameBlocks);
     frameBlocksLayout->setContentsMargins(3,0,3,0);
     frameBlocksLayout->setSpacing(3);
     labelEncryptionIcon = new QLabel();
+    labelMiningIcon = new QLabel();
     labelConnectionsIcon = new QLabel();
     labelBlocksIcon = new QLabel();
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelEncryptionIcon);
+    frameBlocksLayout->addStretch();
+    frameBlocksLayout->addWidget(labelMiningIcon);
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelConnectionsIcon);
     frameBlocksLayout->addStretch();
@@ -390,7 +393,10 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 
         setNumBlocks(clientModel->getNumBlocks(), clientModel->getNumBlocksOfPeers());
         connect(clientModel, SIGNAL(numBlocksChanged(int,int)), this, SLOT(setNumBlocks(int,int)));
-
+	
+	setMining(0, 0);
+        connect(clientModel, SIGNAL(miningChanged(double,int)), this, SLOT(setMining(double,int)));
+	
         // Receive and report messages from network/worker thread
         connect(clientModel, SIGNAL(message(QString,QString,unsigned int)), this, SLOT(message(QString,QString,unsigned int)));
 
@@ -655,6 +661,24 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
     labelBlocksIcon->setToolTip(tooltip);
     progressBarLabel->setToolTip(tooltip);
     progressBar->setToolTip(tooltip);
+}
+
+void BitcoinGUI::setMining(double hashrate, int threads)
+{
+    if (threads>0)
+    {
+        labelMiningIcon->setPixmap(QIcon(":/icons/mining_active").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+	if(hashrate>0){
+		labelMiningIcon->setToolTip(tr("Mining. %2 thread(s) at %1 collisions per minute").arg(hashrate).arg(threads));
+	}else{
+		labelMiningIcon->setToolTip(tr("Mining. %1 thread(s). Still calculating rate of collisions - may take 4 minutes.").arg(threads));	
+	}
+    }
+    else
+    {
+        labelMiningIcon->setPixmap(QIcon(":/icons/mining_inactive").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+        labelMiningIcon->setToolTip(tr("Not mining ProtoShares"));
+    }
 }
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, bool *ret)

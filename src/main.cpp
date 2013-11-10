@@ -53,6 +53,8 @@ bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 
+int DIFFICULTYADJUSTMENTBLOCKHEIGHTFORK = 12000; //first difference should kick in at 2016*6
+
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64 CTransaction::nMinTxFee = 10000;  // Override with -mintxfee
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
@@ -73,6 +75,7 @@ const string strMessageMagic = "ProtoShares Signed Message:\n";
 
 double dHashesPerSec = 0.0;
 int64 nHPSTimerStart = 0;
+int nThreads =0;
 
 // Settings
 int64 nTransactionFee = 0;
@@ -1157,8 +1160,19 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
     // Limit adjustment step
     int64 nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
     printf("  nActualTimespan = %"PRI64d"  before bounds\n", nActualTimespan);
-    if (nActualTimespan < nTargetTimespan/4)
-        nActualTimespan = nTargetTimespan/4;
+    
+    if(pindexLast->nHeight+1<DIFFICULTYADJUSTMENTBLOCKHEIGHTFORK){
+	//For blocks before targetting re-adjustment
+	if (nActualTimespan < nTargetTimespan/4){
+		nActualTimespan = nTargetTimespan/4;
+	}
+    }else{
+	//For blocks after targetting re-adjustment
+	if (nActualTimespan < nTargetTimespan/32){
+		nActualTimespan = nTargetTimespan/32;
+	}
+    }
+    
     if (nActualTimespan > nTargetTimespan*4)
         nActualTimespan = nTargetTimespan*4;
 
@@ -1326,14 +1340,16 @@ uint256 CBlockHeader::GetHash() const
     return r; //Hash(BEGIN(nVersion), END(nBirthdayB));
 }
 
-uint256 CBlockHeader::CalculateBestBirthdayHash() {
+uint256 CBlockHeader::CalculateBestBirthdayHash(int& collisions) {
 				
 		uint256 midHash = GetMidHash();		
 		std::vector< std::pair<uint32_t,uint32_t> > results =bts::momentum_search( midHash );
 		uint32_t candidateBirthdayA=0;
 		uint32_t candidateBirthdayB=0;
 		uint256 smallestHashSoFar("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+		collisions=results.size();
 		for (unsigned i=0; i < results.size(); i++) {
+			
 			nBirthdayA = results[i].first;
 			nBirthdayB = results[i].second;
 			uint256 fullHash = Hash(BEGIN(nVersion), END(nBirthdayB));
@@ -4608,14 +4624,16 @@ void static BitcoinMiner(CWallet *pwallet)
        
 		for(int i=0;i<1;i++){
 			pblock->nNonce=pblock->nNonce+1;
-			testHash=pblock->CalculateBestBirthdayHash();
-			nHashesDone++;
-			printf("testHash %s\n", testHash.ToString().c_str());
-			printf("Hash Target %s\n", hashTarget.ToString().c_str());
+			int collisions=0;
+			testHash=pblock->CalculateBestBirthdayHash(collisions);
+			//nHashesDone++;
+			nHashesDone=nHashesDone+collisions;
+			printf("testHash %s, %d\n", testHash.ToString().c_str(), collisions);
+			//printf("Hash Target %s\n", hashTarget.ToString().c_str());
 		    
 			if(testHash<hashTarget){
 				nNonceFound=pblock->nNonce;
-				printf("Found Hash %s\n", testHash.ToString().c_str());
+				printf("testHash %s, %d\n", testHash.ToString().c_str(), collisions);
 				break;
 			}
 		}
@@ -4705,7 +4723,7 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
 {
     static boost::thread_group* minerThreads = NULL;
 
-    int nThreads = GetArg("-genproclimit", -1);
+    nThreads = GetArg("-genproclimit", -1);
     if (nThreads < 0)
         nThreads = boost::thread::hardware_concurrency();
 
@@ -4723,13 +4741,15 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
         minerThreads = NULL;
     }
 
-    if (nThreads == 0 || !fGenerate)
-        return;
+    if (nThreads == 0 || !fGenerate){
+	nThreads = 0;
+	return;
+    }
 
     if (minerThreads == NULL){
         minerThreads = new boost::thread_group();
         for (int i = 0; i < nThreads; i++)
-            minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet));
+	    minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet));
     }
 }
 

@@ -83,6 +83,7 @@ extern uint64 nLastBlockTx;
 extern uint64 nLastBlockSize;
 extern const std::string strMessageMagic;
 extern double dHashesPerSec;
+extern int nThreads;
 extern int64 nHPSTimerStart;
 extern int64 nTimeBestReceived;
 extern CCriticalSection cs_setpwalletRegistered;
@@ -1320,7 +1321,7 @@ public:
     }
 	
     uint256 GetHash() const;
-    uint256 CalculateBestBirthdayHash();
+    uint256 CalculateBestBirthdayHash(int& collisions);
     void UpdateTime(const CBlockIndex* pindexPrev);
 };
 

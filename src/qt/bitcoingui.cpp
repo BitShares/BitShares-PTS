@@ -66,6 +66,10 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     miningTwoAction(0),
     miningThreeAction(0),
     miningFourAction(0),
+    miningFiveAction(0),
+    miningSixAction(0),
+    miningSevenAction(0),
+    miningEightAction(0),
     aboutQtAction(0),
     trayIcon(0),
     notificator(0),
@@ -255,7 +259,18 @@ void BitcoinGUI::createActions()
     miningFourAction = new QAction(QIcon(":/icons/mining"), tr("Mine 4 Processes (3.25GB Required)"), this);
     miningFourAction->setStatusTip(tr("Mine ProtoShares with 4 processes. 3.25GB Required. Program may crash if insufficient memory is available."));
    // miningFourAction->setMenuRole(QAction::PreferencesRole);
-    
+    miningFiveAction = new QAction(QIcon(":/icons/mining"), tr("Mine 5 Processes (4.2GB Required)"), this);
+    miningFiveAction->setStatusTip(tr("Mine ProtoShares with 5 processes. 4.2GB Required. Program may crash if insufficient memory is available."));
+   // miningFiveAction->setMenuRole(QAction::PreferencesRole);
+    miningSixAction = new QAction(QIcon(":/icons/mining"), tr("Mine 6 Processes (5GB Required)"), this);
+    miningSixAction->setStatusTip(tr("Mine ProtoShares with 6 processes. 5GB Required. Program may crash if insufficient memory is available."));
+   // miningSixAction->setMenuRole(QAction::PreferencesRole);
+    miningSevenAction = new QAction(QIcon(":/icons/mining"), tr("Mine 7 Processes (5.9GB Required)"), this);
+    miningSevenAction->setStatusTip(tr("Mine ProtoShares with 7 processes. 5.9GB Required. Program may crash if insufficient memory is available."));
+   // miningSevenAction->setMenuRole(QAction::PreferencesRole);
+    miningEightAction = new QAction(QIcon(":/icons/mining"), tr("Mine 8 Processes (6.7GB Required)"), this);
+    miningEightAction->setStatusTip(tr("Mine ProtoShares with 7 processes. 6.7GB Required. Program may crash if insufficient memory is available."));
+   // miningEightAction->setMenuRole(QAction::PreferencesRole);
     signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
     signMessageAction->setStatusTip(tr("Sign messages with your ProtoShares addresses to prove you own them"));
     verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message..."), this);
@@ -279,7 +294,11 @@ void BitcoinGUI::createActions()
     connect(miningTwoAction, SIGNAL(triggered()), this, SLOT(miningTwo()));
     connect(miningThreeAction, SIGNAL(triggered()), this, SLOT(miningThree()));
     connect(miningFourAction, SIGNAL(triggered()), this, SLOT(miningFour()));
-    
+    connect(miningFourAction, SIGNAL(triggered()), this, SLOT(miningFour()));
+    connect(miningFiveAction, SIGNAL(triggered()), this, SLOT(miningFive()));
+    connect(miningSixAction, SIGNAL(triggered()), this, SLOT(miningSix()));
+    connect(miningSevenAction, SIGNAL(triggered()), this, SLOT(miningSeven()));
+    connect(miningEightAction, SIGNAL(triggered()), this, SLOT(miningEight()));
     connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
     connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
 }
@@ -312,6 +331,10 @@ void BitcoinGUI::createMenuBar()
     settings->addAction(miningThreeAction);
 #ifndef WIN32
     settings->addAction(miningFourAction);
+    settings->addAction(miningFiveAction);
+    settings->addAction(miningSixAction);
+    settings->addAction(miningSevenAction);
+    settings->addAction(miningEightAction);
 #endif	
     settings->addSeparator();
     settings->addAction(optionsAction);
@@ -896,6 +919,8 @@ void BitcoinGUI::miningOne(){miningOn(1);}
 void BitcoinGUI::miningTwo(){miningOn(2);}
 void BitcoinGUI::miningThree(){miningOn(3);}
 void BitcoinGUI::miningFour(){miningOn(4);}
-
-
+void BitcoinGUI::miningFive(){miningOn(5);}
+void BitcoinGUI::miningSix(){miningOn(6);}
+void BitcoinGUI::miningSeven(){miningOn(7);}
+void BitcoinGUI::miningEight(){miningOn(8);}
 

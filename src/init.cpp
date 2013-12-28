@@ -493,6 +493,11 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 2: parameter interactions
 
+	int isChurn = GetArg("-churn", 0);
+    if(isChurn){
+        setChurnMode();
+    }
+    
     fTestNet = GetBoolArg("-testnet");
 
     if (mapArgs.count("-bind")) {

@@ -71,6 +71,12 @@ CCriticalSection cs_vAddedNodes;
 
 static CSemaphore *semOutbound = NULL;
 
+bool churnNode=false;
+void setChurnMode(){
+	churnNode=true;
+	MAX_OUTBOUND_CONNECTIONS = 50;
+}
+
 void AddOneShot(string strDest)
 {
     LOCK(cs_vOneShots);
@@ -1049,8 +1055,14 @@ void ThreadSocketHandler()
                     printf("socket inactivity timeout\n");
                     pnode->fDisconnect = true;
                 }
+                else if (churnNode && (pnode->fInbound==true && GetTime() - pnode->nTimeConnected > 600))
+                {
+					//If set to churn this is an inbound connection, and has been connected for more than 10 minutes, disconnect it to make room for other new nodes.
+            printf("new node churn\n");
+            pnode->fDisconnect = true;
             }
-        }
+            }
+		}
         {
             LOCK(cs_vNodes);
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
@@ -1197,6 +1209,7 @@ static const char *strMainNetDNSSeed[][2] = {
     {"173.208.148", "173.208.148"},
     {"169.237.74.213", "169.237.74.213"},
     {"175.42.27.186","175.42.27.186"},
+    {"162.243.197.231", "162.243.197.231"}, 
     {NULL, NULL}
 };
 

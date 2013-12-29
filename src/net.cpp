@@ -27,7 +27,7 @@
 using namespace std;
 using namespace boost;
 
-static const int MAX_OUTBOUND_CONNECTIONS = 8;
+int MAX_OUTBOUND_CONNECTIONS = 8;
 
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
 
@@ -70,6 +70,12 @@ vector<std::string> vAddedNodes;
 CCriticalSection cs_vAddedNodes;
 
 static CSemaphore *semOutbound = NULL;
+
+bool churnNode=false;
+void setChurnMode(){
+	churnNode=true;
+	MAX_OUTBOUND_CONNECTIONS = 50;
+}
 
 void AddOneShot(string strDest)
 {
@@ -1049,8 +1055,14 @@ void ThreadSocketHandler()
                     printf("socket inactivity timeout\n");
                     pnode->fDisconnect = true;
                 }
+                else if (churnNode && (pnode->fInbound==true && GetTime() - pnode->nTimeConnected > 600))
+                {
+					//If set to churn this is an inbound connection, and has been connected for more than 10 minutes, disconnect it to make room for other new nodes.
+            printf("new node churn\n");
+            pnode->fDisconnect = true;
             }
-        }
+            }
+		}
         {
             LOCK(cs_vNodes);
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
@@ -1191,19 +1203,13 @@ void MapPort(bool)
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strMainNetDNSSeed[][2] = {
-    {"162.243.45.158", "162.243.45.158"},
-    {"192.241.150.158", "192.241.150.158"},
-    {"162.243.67.4", "162.243.67.4"},
-    {"162.243.54.126", "162.243.54.126"},
-    {"37.139.29.236", "37.139.29.236"},
-    {"64.90.183.137", "64.90.183.137"},
-    {"111.93.163.251","111.93.163.251"},
-    {"54.219.164.96","54.219.164.96"},
-    {"198.211.112.13","198.211.112.13"},
-    {"50.112.199.32","50.112.199.32"},
-    {"106.187.41.67","106.187.41.67"},
-    {"54.218.232.206","54.218.232.206"},
-    {"54.212.175.33","54.212.175.33"},
+    {"49.89.6.185", "49.89.6.185"},
+    {"222.174.212.250", "222.174.212.250"},
+    {"183.8.183.73", "183.8.183.73"},
+    {"173.208.148", "173.208.148"},
+    {"169.237.74.213", "169.237.74.213"},
+    {"175.42.27.186","175.42.27.186"},
+    {"162.243.197.231", "162.243.197.231"}, 
     {NULL, NULL}
 };
 

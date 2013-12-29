@@ -45,6 +45,8 @@ void StartNode(boost::thread_group& threadGroup);
 bool StopNode();
 void SocketSendData(CNode *pnode);
 
+void setChurnMode();
+
 enum
 {
     LOCAL_NONE,   // unknown

@@ -553,6 +553,55 @@ Value getbalance(const Array& params, bool fHelp)
 }
 
 
+Value getagsbalance(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "getagsbalance [account]\n"
+            "If * is specified, returns the verbose AGS balance of all addresses.\n"
+            "If [address] is not specified, returns the total AGS balance of all addresses.\n"
+            "If [address] is specified, returns the AGS balance of the address.\n"
+            "Note: Result based on data gathered from http://angelshares.info/json/?allAddresses");
+
+    if ((params.size() > 0) && (params[0].get_str() != "*"))
+    {
+        CBitcoinAddress address(params[0].get_str());
+        if (!address.IsValid())
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ProtoShares address");
+    }
+
+    Object reply = GetAgsBalances().get_obj();
+    double total = 0;
+    Object jsonAgs;
+
+    Object balances = find_value(reply, "balances").get_obj();
+    BOOST_FOREACH(set<CTxDestination> grouping, pwalletMain->GetAddressGroupings())
+    {
+        BOOST_FOREACH(CTxDestination address, grouping)
+        {
+            Value value = find_value(balances, CBitcoinAddress(address).ToString());
+            value = value == Value::null ? 0 : value;
+            total += value.get_real();
+            jsonAgs.push_back(Pair(CBitcoinAddress(address).ToString(), value));
+        }
+    }
+
+    if (params.size() == 0)
+        return total;
+    if (params[0].get_str() == "*")
+    {
+        Object result;
+        result.push_back(Pair("daycount", find_value(reply, "day_count")));
+        result.push_back(Pair("lastupdate", find_value(reply, "last_update")));
+        result.push_back(Pair("total", total));
+        result.push_back(Pair("ags", jsonAgs));
+        return result;
+    }
+    else
+      return find_value(jsonAgs, params[0].get_str());
+}
+
+
 Value movecmd(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 5)

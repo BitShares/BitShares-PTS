@@ -60,6 +60,8 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
+static const uint256 hashGenesisBlockOfficial("0x000fdcd47b7e75a46a2aded5f3335c90eb2224e01ab19ec64ffdd1b437d7b8c0");
+static const uint256 hashGenesisBlockTestNet("0x00078fdabf31a324a80506427f4e843ef75a27935eb5f5cbd2fa99d2b938fab6");
 
 extern CScript COINBASE_FLAGS;
 

@@ -66,7 +66,7 @@ Mac OS X
 
         patch -p1 < contrib/homebrew/bitcoin.qt.pro.patch
 
-- Open the bitcoin-qt.pro file in Qt Creator and build as normal (cmd-B)
+- Open the protoshares-qt.pro file in Qt Creator and build as normal (cmd-B)
 
 .. _`Qt Mac OS X SDK`: http://qt-project.org/downloads/
 .. _`MacPorts`: http://www.macports.org/install.php

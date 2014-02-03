@@ -1,5 +1,4 @@
 #include "bignum.h"
-#include "semiOrderedMap.h"
 
 namespace bts {
 	std::vector< std::pair<uint32_t,uint32_t> > momentum_search( uint256 midHash );

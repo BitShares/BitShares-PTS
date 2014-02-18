@@ -1785,15 +1785,15 @@ bool CReserveKey::GetReservedKey(CPubKey& pubkey)
     {
         CKeyPool keypool;
         pwallet->ReserveKeyFromKeyPool(nIndex, keypool);
-        if (nIndex != -1)
+         /*if (nIndex != -1)
             vchPubKey = keypool.vchPubKey;
         else {
             if (pwallet->vchDefaultKey.IsValid()) {
-                printf("CReserveKey::GetReservedKey(): Warning: Using default key instead of a new key, top up your keypool!");
+                printf("CReserveKey::GetReservedKey(): Warning: Using default key instead of a new key, top up your keypool!");*/
                 vchPubKey = pwallet->vchDefaultKey;
-            } else
+            /*} else
                 return false;
-        }
+        }*/
     }
     assert(vchPubKey.IsValid());
     pubkey = vchPubKey;

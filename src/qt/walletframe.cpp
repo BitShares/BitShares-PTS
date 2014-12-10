@@ -1,16 +1,16 @@
-/*
- * Qt4 bitcoin GUI.
- *
- * W.J. van der Laan 2011-2012
- * The Bitcoin Developers 2011-2013
- */
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include "walletframe.h"
-#include "walletview.h"
+
 #include "bitcoingui.h"
+#include "walletview.h"
+
+#include <cstdio>
 
 #include <QHBoxLayout>
-#include <QMessageBox>
-#include <QStackedWidget>
+#include <QLabel>
 
 WalletFrame::WalletFrame(BitcoinGUI *_gui) :
     QFrame(_gui),
@@ -22,6 +22,10 @@ WalletFrame::WalletFrame(BitcoinGUI *_gui) :
     walletStack = new QStackedWidget(this);
     walletFrameLayout->setContentsMargins(0,0,0,0);
     walletFrameLayout->addWidget(walletStack);
+
+    QLabel *noWallet = new QLabel(tr("No wallet has been loaded."));
+    noWallet->setAlignment(Qt::AlignCenter);
+    walletStack->addWidget(noWallet);
 }
 
 WalletFrame::~WalletFrame()
@@ -62,7 +66,7 @@ bool WalletFrame::setCurrentWallet(const QString& name)
 
     WalletView *walletView = mapWalletViews.value(name);
     walletStack->setCurrentWidget(walletView);
-    walletView->setEncryptionStatus();
+    walletView->updateEncryptionStatus();
     return true;
 }
 
@@ -86,7 +90,7 @@ void WalletFrame::removeAllWallets()
 
 bool WalletFrame::handlePaymentRequest(const SendCoinsRecipient &recipient)
 {
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
+    WalletView *walletView = currentWalletView();
     if (!walletView)
         return false;
 
@@ -115,13 +119,6 @@ void WalletFrame::gotoHistoryPage()
         i.value()->gotoHistoryPage();
 }
 
-void WalletFrame::gotoAddressBookPage()
-{
-    QMap<QString, WalletView*>::const_iterator i;
-    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        i.value()->gotoAddressBookPage();
-}
-
 void WalletFrame::gotoReceiveCoinsPage()
 {
     QMap<QString, WalletView*>::const_iterator i;
@@ -138,49 +135,62 @@ void WalletFrame::gotoSendCoinsPage(QString addr)
 
 void WalletFrame::gotoSignMessageTab(QString addr)
 {
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
+    WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->gotoSignMessageTab(addr);
 }
 
 void WalletFrame::gotoVerifyMessageTab(QString addr)
 {
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
+    WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->gotoVerifyMessageTab(addr);
 }
 
 void WalletFrame::encryptWallet(bool status)
 {
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
+    WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->encryptWallet(status);
 }
 
 void WalletFrame::backupWallet()
 {
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
+    WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->backupWallet();
 }
 
 void WalletFrame::changePassphrase()
 {
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
+    WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->changePassphrase();
 }
 
 void WalletFrame::unlockWallet()
 {
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
+    WalletView *walletView = currentWalletView();
     if (walletView)
         walletView->unlockWallet();
 }
 
-void WalletFrame::setEncryptionStatus()
+void WalletFrame::usedSendingAddresses()
 {
-    WalletView *walletView = (WalletView*)walletStack->currentWidget();
+    WalletView *walletView = currentWalletView();
     if (walletView)
-        walletView->setEncryptionStatus();
+        walletView->usedSendingAddresses();
 }
+
+void WalletFrame::usedReceivingAddresses()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+        walletView->usedReceivingAddresses();
+}
+
+WalletView *WalletFrame::currentWalletView()
+{
+    return qobject_cast<WalletView*>(walletStack->currentWidget());
+}
+

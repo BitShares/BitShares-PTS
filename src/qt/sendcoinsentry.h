@@ -1,14 +1,19 @@
-#ifndef SENDCOINSENTRY_H
-#define SENDCOINSENTRY_H
+// Copyright (c) 2011-2013 The Bitcoin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_QT_SENDCOINSENTRY_H
+#define BITCOIN_QT_SENDCOINSENTRY_H
+
+#include "walletmodel.h"
 
 #include <QStackedWidget>
 
-#include "walletmodel.h"
+class WalletModel;
 
 namespace Ui {
     class SendCoinsEntry;
 }
-class WalletModel;
 
 /**
  * A single entry in the dialog for sending bitcoins.
@@ -41,14 +46,14 @@ public:
     void setFocus();
 
 public slots:
-    void setRemoveEnabled(bool enabled);
     void clear();
 
 signals:
     void removeEntry(SendCoinsEntry *entry);
+    void payAmountChanged();
 
 private slots:
-    void on_deleteButton_clicked();
+    void deleteClicked();
     void on_payTo_textChanged(const QString &address);
     void on_addressBookButton_clicked();
     void on_pasteButton_clicked();
@@ -62,4 +67,4 @@ private:
     bool updateLabel(const QString &address);
 };
 
-#endif // SENDCOINSENTRY_H
+#endif // BITCOIN_QT_SENDCOINSENTRY_H

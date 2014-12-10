@@ -1,12 +1,16 @@
+// Copyright (c) 2013 The Bitcoin Core developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <boost/test/unit_test.hpp>
+
+#include "base58.h"
+#include "key.h"
+#include "uint256.h"
+#include "util.h"
 
 #include <string>
 #include <vector>
-
-#include "key.h"
-#include "base58.h"
-#include "uint256.h"
-#include "util.h"
 
 struct TestDerivation {
     std::string pub;

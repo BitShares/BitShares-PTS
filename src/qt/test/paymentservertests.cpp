@@ -1,18 +1,21 @@
-#include <QCoreApplication>
-#include <QDebug>
-#include <QTemporaryFile>
-#include <QVariant>
-#include <QFileOpenEvent>
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include "paymentservertests.h"
+
+#include "optionsmodel.h"
+#include "paymentrequestdata.h"
+
+#include "random.h"
+#include "util.h"
+#include "utilstrencodings.h"
 
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
 
-#include "optionsmodel.h"
-#include "paymentservertests.h"
-#include "paymentrequestdata.h"
-#include "util.h"
-
-
+#include <QFileOpenEvent>
+#include <QTemporaryFile>
 
 X509 *parse_b64der_cert(const char* cert_data)
 {
@@ -24,7 +27,6 @@ X509 *parse_b64der_cert(const char* cert_data)
     return cert;
 }
 
-
 //
 // Test payment request handling
 //
@@ -33,7 +35,7 @@ static SendCoinsRecipient handleRequest(PaymentServer* server, std::vector<unsig
 {
     RecipientCatcher sigCatcher;
     QObject::connect(server, SIGNAL(receivedPaymentRequest(SendCoinsRecipient)),
-                     &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
+        &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
 
     // Write data to a temp file:
     QTemporaryFile f;
@@ -41,12 +43,17 @@ static SendCoinsRecipient handleRequest(PaymentServer* server, std::vector<unsig
     f.write((const char*)&data[0], data.size());
     f.close();
 
-    // Create a FileOpenEvent and send it directly to the server's event filter:
+    // Create a QObject, install event filter from PaymentServer
+    // and send a file open event to the object
+    QObject object;
+    object.installEventFilter(server);
     QFileOpenEvent event(f.fileName());
-    server->eventFilter(NULL, &event);
+    // If sending the event fails, this will cause sigCatcher to be empty,
+    // which will lead to a test failure anyway.
+    QCoreApplication::sendEvent(&object, &event);
 
     QObject::disconnect(server, SIGNAL(receivedPaymentRequest(SendCoinsRecipient)),
-                        &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
+        &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
 
     // Return results from sigCatcher
     return sigCatcher.recipient;
@@ -54,13 +61,13 @@ static SendCoinsRecipient handleRequest(PaymentServer* server, std::vector<unsig
 
 void PaymentServerTests::paymentServerTests()
 {
+    SelectParams(CBaseChainParams::MAIN);
     OptionsModel optionsModel;
     PaymentServer* server = new PaymentServer(NULL, false);
     X509_STORE* caStore = X509_STORE_new();
     X509_STORE_add_cert(caStore, parse_b64der_cert(caCert_BASE64));
     PaymentServer::LoadRootCAs(caStore);
     server->setOptionsModel(&optionsModel);
-    server->initNetManager();
     server->uiReady();
 
     // Now feed PaymentRequests to server, and observe signals it produces:
@@ -101,6 +108,17 @@ void PaymentServerTests::paymentServerTests()
     r = handleRequest(server, data);
     r.paymentRequest.getMerchant(caStore, merchant);
     QCOMPARE(merchant, QString(""));
+
+    // Just get some random data big enough to trigger BIP70 DoS protection
+    unsigned char randData[BIP70_MAX_PAYMENTREQUEST_SIZE + 1];
+    GetRandBytes(randData, sizeof(randData));
+    // Write data to a temp file:
+    QTemporaryFile tempFile;
+    tempFile.open();
+    tempFile.write((const char*)randData, sizeof(randData));
+    tempFile.close();
+    // Trigger BIP70 DoS protection
+    QCOMPARE(PaymentServer::readPaymentRequestFromFile(tempFile.fileName(), r.paymentRequest), false);
 
     delete server;
 }
